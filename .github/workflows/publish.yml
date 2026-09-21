@@ -5,13 +5,12 @@ on:
     types: [published]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -29,5 +28,5 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
-      # OIDC trusted publisher — no NPM_TOKEN needed
+      # OIDC trusted publisher — do not set NODE_AUTH_TOKEN
       - run: npm publish --access public --provenance
