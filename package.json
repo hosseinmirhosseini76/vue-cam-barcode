@@ -1,0 +1,58 @@
+{
+  "name": "vue-cam-barcode",
+  "version": "0.1.0",
+  "description": "Vue 3 camera barcode scanner for phones and tablets. Native BarcodeDetector when possible, zxing-wasm ponyfill otherwise.",
+  "type": "module",
+  "license": "MIT",
+  "author": "S.Hossein Mirhosseini",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "barcode",
+    "ean",
+    "upc",
+    "gtin",
+    "camera",
+    "scanner"
+  ],
+  "scripts": {
+    "dev": "vite --config playground/vite.config.ts",
+    "build": "vite build",
+    "test": "vitest run",
+    "prepublishOnly": "vitest run && vite build"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
+  "dependencies": {
+    "barcode-detector": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2",
+    "vite-plugin-dts": "^4.5.3",
+    "vitest": "^3.0.9",
+    "vue": "^3.5.13"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
