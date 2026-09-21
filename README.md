@@ -36,7 +36,11 @@ Props: `formats`, `autoStart`, `once`, `multiple`, `cooldownMs`. Methods via tem
 
 ## Author
 
-S.Hossein Mirhosseini
+[S.Hossein Mirhosseini](https://github.com/hosseinmirhosseini76)
+
+## Repository
+
+https://github.com/hosseinmirhosseini76/vue-cam-barcode
 
 ## License
 
