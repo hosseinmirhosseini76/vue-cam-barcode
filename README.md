@@ -38,9 +38,10 @@ Hold the code steady until it is confirmed on several frames. Blurry frames ofte
 
 ## Demo
 
-Live playground (GitHub Pages): https://hosseinmirhosseini76.github.io/vue-cam-barcode/
+Local playground / static demo build:
 
 ```bash
+pnpm dev          # https playground on :5174
 pnpm build:demo   # static site → demo-dist/
 ```
 
@@ -64,5 +65,5 @@ pnpm install
 pnpm test
 pnpm dev          # playground on :5174 — open from your phone (HTTPS)
 pnpm build        # library
-pnpm build:demo   # demo site
+pnpm build:demo   # demo site → demo-dist/
 ```
