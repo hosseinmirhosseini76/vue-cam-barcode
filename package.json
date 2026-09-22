@@ -1,6 +1,6 @@
 {
   "name": "vue-cam-barcode",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Vue 3 camera barcode scanner for phones and tablets. Native BarcodeDetector when possible, zxing-wasm ponyfill otherwise.",
   "type": "module",
   "license": "MIT",
@@ -44,6 +44,7 @@
   "scripts": {
     "dev": "vite --config playground/vite.config.ts",
     "build": "vite build",
+    "build:demo": "vite build --config playground/vite.config.ts",
     "test": "vitest run",
     "prepublishOnly": "vitest run && vite build"
   },

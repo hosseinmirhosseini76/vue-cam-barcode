@@ -11,6 +11,21 @@ const props = withDefaults(
     once?: boolean
     multiple?: boolean
     cooldownMs?: number
+    /** Same code hits needed inside confirmWindowMs. Default 3. */
+    confirmCount?: number
+    /** Window (ms) to accumulate confirm hits. Default 2000. */
+    confirmWindowMs?: number
+    /** Reject EAN/UPC with bad check digit. Default true. */
+    requireValidChecksum?: boolean
+    /** Decode only the center frame region. Default false. */
+    scanRegion?: boolean
+    /** Prefer native BarcodeDetector. Default false (WASM is more consistent). */
+    preferNative?: boolean
+    /**
+     * When multiple: reject EANs within this Hamming distance of a seen code.
+     * Default 3. Set 0 to disable.
+     */
+    uniqueNearDistance?: number
     detect?: DetectFn
     wasmUrl?: string
   }>(),
@@ -19,13 +34,21 @@ const props = withDefaults(
     once: false,
     multiple: false,
     cooldownMs: 1200,
+    confirmCount: 3,
+    confirmWindowMs: 2000,
+    requireValidChecksum: true,
+    scanRegion: false,
+    preferNative: false,
+    uniqueNearDistance: 3,
   },
 )
 
 const emit = defineEmits<{
   detect: [result: BarcodeScanResult]
+  candidate: [result: BarcodeScanResult]
   complete: [values: string[]]
   error: [error: Error]
+  engine: [engine: 'native' | 'wasm']
 }>()
 
 const video = ref<HTMLVideoElement | null>(null)
@@ -34,6 +57,7 @@ const {
   supported,
   scanning,
   error,
+  engine,
   lastResult,
   torchOn,
   torchAvailable,
@@ -47,8 +71,29 @@ const {
   get once() {
     return props.multiple ? false : props.once
   },
+  get unique() {
+    return props.multiple
+  },
+  get uniqueNearDistance() {
+    return props.uniqueNearDistance
+  },
   get cooldownMs() {
     return props.cooldownMs
+  },
+  get confirmCount() {
+    return props.confirmCount
+  },
+  get confirmWindowMs() {
+    return props.confirmWindowMs
+  },
+  get requireValidChecksum() {
+    return props.requireValidChecksum
+  },
+  get scanRegion() {
+    return props.scanRegion
+  },
+  get preferNative() {
+    return props.preferNative
   },
   get detect() {
     return props.detect
@@ -57,6 +102,8 @@ const {
     return props.wasmUrl
   },
   onDetect: onDetected,
+  onCandidate: (result) => emit('candidate', result),
+  onEngine: (name) => emit('engine', name),
   onError: (err) => emit('error', err),
 })
 
@@ -65,11 +112,12 @@ function barcodeValue(result: BarcodeScanResult): string {
 }
 
 function onDetected(result: BarcodeScanResult): void {
-  emit('detect', result)
-  if (!props.multiple) return
   const value = barcodeValue(result)
-  if (!value || values.value.includes(value)) return
-  values.value = [...values.value, value]
+  if (props.multiple) {
+    if (!value || values.value.includes(value)) return
+    values.value = [...values.value, value]
+  }
+  emit('detect', result)
 }
 
 async function begin(): Promise<void> {
@@ -97,6 +145,7 @@ defineExpose({
   lastResult,
   values,
   error,
+  engine,
   supported,
 })
 </script>
@@ -138,6 +187,7 @@ defineExpose({
       :result="lastResult"
       :values="values"
       :error="error"
+      :engine="engine"
     />
   </div>
 </template>

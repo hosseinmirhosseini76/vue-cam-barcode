@@ -12,6 +12,7 @@ export function useBarcodeScanner(
   const torchAvailable = ref(false)
   const lastResult = shallowRef<BarcodeScanResult | null>(null)
   const error = shallowRef<Error | null>(null)
+  const engine = shallowRef<'native' | 'wasm' | null>(null)
   let scanner: CameraBarcodeScanner | null = null
 
   const supported = isCameraSupported()
@@ -24,11 +25,19 @@ export function useBarcodeScanner(
     }
     stop()
     error.value = null
+    engine.value = null
     scanner = new CameraBarcodeScanner(el, {
       ...options,
       onDetect: (result) => {
         lastResult.value = result
         options.onDetect?.(result)
+      },
+      onCandidate: (result) => {
+        options.onCandidate?.(result)
+      },
+      onEngine: (name) => {
+        engine.value = name
+        options.onEngine?.(name)
       },
       onError: (err) => {
         error.value = err
@@ -66,6 +75,7 @@ export function useBarcodeScanner(
     supported,
     scanning,
     error,
+    engine,
     lastResult,
     torchOn,
     torchAvailable,

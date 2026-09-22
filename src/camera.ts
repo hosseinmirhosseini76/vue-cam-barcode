@@ -13,6 +13,13 @@ export function isBarcodeDetectorSupported(): boolean {
   return typeof window !== 'undefined' && 'BarcodeDetector' in window
 }
 
+async function getUserMedia(video: MediaTrackConstraints | boolean): Promise<MediaStream> {
+  return navigator.mediaDevices.getUserMedia({ audio: false, video })
+}
+
+/**
+ * Open rear camera with progressive fallbacks for picky Android / iOS browsers.
+ */
 export async function openRearCamera(
   video: HTMLVideoElement,
   constraints?: MediaTrackConstraints,
@@ -28,31 +35,59 @@ export async function openRearCamera(
     )
   }
 
-  const videoConstraints: MediaTrackConstraints = {
-    facingMode: { ideal: 'environment' },
-    width: { ideal: 1280 },
-    height: { ideal: 720 },
-    ...constraints,
+  const attempts: Array<MediaTrackConstraints | boolean> = [
+    {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+      ...constraints,
+    },
+    { facingMode: { ideal: 'environment' }, ...constraints },
+    { facingMode: 'environment' },
+    true,
+  ]
+
+  let stream: MediaStream | null = null
+  let lastError: unknown
+
+  for (const attempt of attempts) {
+    try {
+      stream = await getUserMedia(attempt)
+      break
+    } catch (error) {
+      lastError = error
+      const name = error instanceof DOMException ? error.name : ''
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        throw new BarcodeScannerError('permission', 'Camera permission was denied.')
+      }
+    }
   }
 
-  let stream: MediaStream
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: videoConstraints,
-    })
-  } catch (error) {
-    const name = error instanceof DOMException ? error.name : ''
-    if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
-      throw new BarcodeScannerError('permission', 'Camera permission was denied.')
-    }
+  if (!stream) {
+    const name = lastError instanceof DOMException ? lastError.name : ''
     if (name === 'NotFoundError' || name === 'OverconstrainedError') {
-      throw new BarcodeScannerError('no-camera', 'No rear camera was found.')
+      throw new BarcodeScannerError('no-camera', 'No camera was found.')
     }
     throw new BarcodeScannerError(
       'camera',
-      error instanceof Error ? error.message : 'Could not open camera.',
+      lastError instanceof Error ? lastError.message : 'Could not open camera.',
     )
+  }
+
+  const track = stream.getVideoTracks()[0]
+  if (track) {
+    try {
+      const caps = track.getCapabilities?.() as
+        | { focusMode?: string[] }
+        | undefined
+      if (caps?.focusMode?.includes('continuous')) {
+        await track.applyConstraints({
+          advanced: [{ focusMode: 'continuous' }],
+        } as unknown as MediaTrackConstraints)
+      }
+    } catch {
+      // focusMode is best-effort
+    }
   }
 
   video.srcObject = stream
@@ -60,7 +95,11 @@ export async function openRearCamera(
   video.setAttribute('muted', 'true')
   video.muted = true
   video.autoplay = true
-  await video.play()
+  try {
+    await video.play()
+  } catch {
+    // Autoplay can fail until a gesture; start() is already user-triggered.
+  }
   return stream
 }
 

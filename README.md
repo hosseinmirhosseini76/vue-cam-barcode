@@ -32,15 +32,26 @@ function onDetect(result) {
 import { useBarcodeScanner, parseBarcode } from 'vue-cam-barcode'
 ```
 
-Props: `formats`, `autoStart`, `once`, `multiple`, `cooldownMs`. Methods via template ref: `start`, `stop`, `finish`, `toggleTorch`.
+Props: `formats`, `autoStart`, `once`, `multiple`, `cooldownMs`, `confirmCount` (default **3**), `confirmWindowMs`, `requireValidChecksum` (default **true**, EAN/UPC), `uniqueNearDistance` (default **3** in multiple — drops blurry near-miss EANs), `scanRegion`, `preferNative`. Events: `@detect`, `@candidate`, `@complete`, `@error`, `@engine`.
+
+Hold the code steady until it is confirmed on several frames. Blurry frames often invent *different* but checksum-valid EANs; confirmation + near-duplicate filtering drops those.
+
+## Demo
+
+Live playground (GitHub Pages): https://hosseinmirhosseini76.github.io/vue-cam-barcode/
+
+```bash
+pnpm build:demo   # static site → demo-dist/
+```
 
 ## Author
 
 [S.Hossein Mirhosseini](https://github.com/hosseinmirhosseini76)
 
-## Repository
+## Links
 
-https://github.com/hosseinmirhosseini76/vue-cam-barcode
+- GitHub: https://github.com/hosseinmirhosseini76/vue-cam-barcode
+- npm: https://www.npmjs.com/package/vue-cam-barcode
 
 ## License
 
@@ -51,6 +62,7 @@ MIT
 ```bash
 pnpm install
 pnpm test
-pnpm dev     # playground on :5174 — open from your phone (HTTPS)
-pnpm build
+pnpm dev          # playground on :5174 — open from your phone (HTTPS)
+pnpm build        # library
+pnpm build:demo   # demo site
 ```
